@@ -4,8 +4,15 @@ import PublicEventClient from '@/components/PublicEventClient';
 
 export const revalidate = 0; // dynamic
 
-export default async function PublicEventPage({ params }: { params: { name: string } }) {
-  const { name } = params; // rely on current stable object form; if promise change later can adapt
+// Experimental promise-based params signature. If build/runtime rejects this, revert to object form.
+export default async function PublicEventPage({ params }: { params: Promise<{ name: string }> }) {
+  let name: string;
+  try {
+    // Await the params promise (Next.js experimental behavior)
+    ({ name } = await params);
+  } catch (e) {
+    return <div className="p-6">Unable to resolve route parameters.</div>;
+  }
   const db = await getDb();
   const event = await db.collection<EventDoc>('events').findOne({ name });
   if (!event) return <div className="p-6">Event not found.</div>;
