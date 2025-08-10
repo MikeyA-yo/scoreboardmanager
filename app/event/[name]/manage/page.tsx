@@ -3,13 +3,7 @@ import { useEffect, useState } from 'react';
 
 interface SessionData { name: string; scores: number[]; }
 
-// In newer Next.js versions params may become a Promise; handle both forms gracefully.
-function resolveParams(p: { name: string } | Promise<{ name: string }>): Promise<{ name: string }> {
-  if (p && typeof (p as any).then === 'function') return p as Promise<{ name: string }>;
-  return Promise.resolve(p as { name: string });
-}
-
-export default function ManageEventPage({ params }: { params: { name: string } | Promise<{ name: string }> }) {
+export default function ManageEventPage({ params }: { params: { name: string } }) {
   const [name, setName] = useState<string>('');
   const [event, setEvent] = useState<{ name: string; description?: string; teams: string[]; sessions: SessionData[]; totals: number[]; updatedAt: string }|null>(null);
   const [loading, setLoading] = useState(true);
@@ -31,7 +25,7 @@ export default function ManageEventPage({ params }: { params: { name: string } |
     finally { setLoading(false); }
   };
 
-  useEffect(()=>{resolveParams(params).then(p=> { setName(p.name); });},[params]);
+  useEffect(()=>{ setName(params.name); },[params]);
   useEffect(()=>{ if(name) fetchEvent(); },[name]);
 
   const addSession = async () => {
