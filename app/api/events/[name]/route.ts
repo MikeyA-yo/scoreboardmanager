@@ -13,9 +13,9 @@ async function unwrapParams(p: { name: string } | Promise<{ name: string }>): Pr
 // GET /api/events/[name] -> public event data with totals
 export async function GET(_req: NextRequest, ctx: { params: { name: string } | Promise<{ name: string }> }) {
   try {
-  const { name } = await unwrapParams(ctx.params);
-  const db = await getDb();
-  const event = await db.collection<EventDoc>('events').findOne({ name });
+    const { name } = await unwrapParams(ctx.params);
+    const db = await getDb();
+    const event = await db.collection<EventDoc>('events').findOne({ name });
     if (!event) return Response.json({ error: 'Not found' }, { status: 404 });
     const totals = computeTotals(event);
     return Response.json({ name: event.name, description: event.description, teams: event.teams, sessions: event.sessions.map(s => ({ name: s.name, scores: s.scores })), totals, updatedAt: event.updatedAt });
