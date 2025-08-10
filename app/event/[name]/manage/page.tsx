@@ -3,7 +3,8 @@ import { useEffect, useState } from 'react';
 
 interface SessionData { name: string; scores: number[]; }
 
-export default function ManageEventPage({ params }: { params: { name: string } }) {
+// Accept promise-style params (Next.js experimental) and resolve inside effect
+export default function ManageEventPage({ params }: { params: Promise<{ name: string }> }) {
   const [name, setName] = useState<string>('');
   const [event, setEvent] = useState<{ name: string; description?: string; teams: string[]; sessions: SessionData[]; totals: number[]; updatedAt: string }|null>(null);
   const [loading, setLoading] = useState(true);
@@ -25,7 +26,7 @@ export default function ManageEventPage({ params }: { params: { name: string } }
     finally { setLoading(false); }
   };
 
-  useEffect(()=>{ setName(params.name); },[params]);
+  useEffect(()=>{ let active = true; params.then(p=> { if(active) setName(p.name); }); return () => { active = false; }; },[params]);
   useEffect(()=>{ if(name) fetchEvent(); },[name]);
 
   const addSession = async () => {
