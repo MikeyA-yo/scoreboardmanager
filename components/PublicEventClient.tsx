@@ -56,7 +56,7 @@ export default function PublicEventClient({ initial, name }: { initial: EventDat
           </tbody>
         </table>
       </div>
-      <p className="text-xs text-gray-500">Auto-updates every 5s. Last update: {new Date(data.updatedAt).toLocaleTimeString()}</p>
+      <p className="text-xs text-gray-500">Auto-updates every 5s. Last update: {new Date(data.updatedAt).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit', hour12: true })}</p>
       {error && <p className="text-xs text-red-600">{error}</p>}
     </div>
   );

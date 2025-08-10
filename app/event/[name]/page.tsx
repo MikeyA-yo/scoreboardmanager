@@ -25,6 +25,7 @@ export default async function PublicEventPage({ params }: { params: Promise<{ na
     totals,
     updatedAt: event.updatedAt.toISOString?.() || String(event.updatedAt)
   };
+  console.log('Initial event data:', initial);
   return (
     <div className="p-6 max-w-3xl mx-auto w-full">
       <PublicEventClient initial={initial as any} name={name} />
