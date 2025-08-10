@@ -6,9 +6,11 @@ import bcrypt from 'bcryptjs';
 // Using a Promise union caused build-time type error. Keeping simple object form.
 
 // GET /api/events/[name] -> public event data with totals
-export async function GET(_req: NextRequest, { params }: { params: { name: string } }) {
+// Using Promise<any> context to align with experimental param delivery; cast after await.
+export async function GET(_req: NextRequest, contextPromise: Promise<any>) {
   try {
-  const { name } = params;
+    const { params } = await contextPromise as { params: { name: string } };
+    const { name } = params;
     const db = await getDb();
     const event = await db.collection<EventDoc>('events').findOne({ name });
     if (!event) return Response.json({ error: 'Not found' }, { status: 404 });
@@ -20,13 +22,14 @@ export async function GET(_req: NextRequest, { params }: { params: { name: strin
 }
 
 // PATCH /api/events/[name] -> add/edit session (requires password or creator)
-export async function PATCH(req: NextRequest, { params }: { params: { name: string } }) {
+export async function PATCH(req: NextRequest, contextPromise: Promise<any>) {
   try {
+    const { params } = await contextPromise as { params: { name: string } };
+    const { name } = params;
     const body = await req.json();
     const { action, managementPassword, session } = body as { action: 'add-session' | 'update-session'; managementPassword?: string; session: { name: string; scores: number[]; index?: number } };
     if (!action) return Response.json({ error: 'Action required' }, { status: 400 });
     const db = await getDb();
-  const { name } = params;
   const event = await db.collection<EventDoc>('events').findOne({ name });
     if (!event) return Response.json({ error: 'Not found' }, { status: 404 });
 
