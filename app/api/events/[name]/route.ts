@@ -2,18 +2,13 @@ import { NextRequest } from 'next/server';
 import { getDb } from '@/lib/mongodb';
 import { EventDoc, computeTotals } from '@/types/models';
 import bcrypt from 'bcryptjs';
-
-async function unwrapParams(p: { name: string } | Promise<{ name: string }>): Promise<{ name: string }> {
-  if (p && typeof (p as any).then === 'function') {
-    return await (p as Promise<{ name: string }>);
-  }
-  return p as { name: string };
-}
+// NOTE: Route handler params are currently synchronous objects in stable Next.js.
+// Using a Promise union caused build-time type error. Keeping simple object form.
 
 // GET /api/events/[name] -> public event data with totals
-export async function GET(_req: NextRequest, ctx: { params: { name: string } | Promise<{ name: string }> }) {
+export async function GET(_req: NextRequest, { params }: { params: { name: string } }) {
   try {
-    const { name } = await unwrapParams(ctx.params);
+  const { name } = params;
     const db = await getDb();
     const event = await db.collection<EventDoc>('events').findOne({ name });
     if (!event) return Response.json({ error: 'Not found' }, { status: 404 });
@@ -25,13 +20,13 @@ export async function GET(_req: NextRequest, ctx: { params: { name: string } | P
 }
 
 // PATCH /api/events/[name] -> add/edit session (requires password or creator)
-export async function PATCH(req: NextRequest, ctx: { params: { name: string } | Promise<{ name: string }> }) {
+export async function PATCH(req: NextRequest, { params }: { params: { name: string } }) {
   try {
     const body = await req.json();
     const { action, managementPassword, session } = body as { action: 'add-session' | 'update-session'; managementPassword?: string; session: { name: string; scores: number[]; index?: number } };
     if (!action) return Response.json({ error: 'Action required' }, { status: 400 });
     const db = await getDb();
-  const { name } = await unwrapParams(ctx.params);
+  const { name } = params;
   const event = await db.collection<EventDoc>('events').findOne({ name });
     if (!event) return Response.json({ error: 'Not found' }, { status: 404 });
 
